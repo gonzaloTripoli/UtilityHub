@@ -1,15 +1,49 @@
+using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using UtilsUserService.Application.Commands;              
+using UtilsUserService.Domain.Interfaces;
+using UtilsUserService.Infrastructure.Persistence;      
+using UtilsUserService.Infrastructure.Repositories;
+using UtilsUserService.Application.Common;               
+using MediatR.Pipeline;                                  
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Controllers + Swagger
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+// MediatR + FluentValidation
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateUserCommand>());
+builder.Services.AddValidatorsFromAssemblyContaining<CreateUserCommand>();
 
-// Configure the HTTP request pipeline.
+// Registrar el pipeline de validación (aplica a TODOS los requests de MediatR)
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// DbContext (Postgres)
+var cs = builder.Configuration.GetConnectionString("UsersDb")
+         ?? "Host=localhost;Port=5432;Database=users;Username=postgres;Password=drowssap";
+builder.Services.AddDbContext<UsersDbContext>(o => o.UseNpgsql(cs));
+
+// Repo
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+var app = builder.Build();
+app.Use(async (ctx, next) =>
+{
+    try { await next(); }
+    catch (ValidationException ex)
+    {
+        ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await ctx.Response.WriteAsJsonAsync(new
+        {
+            error = "ValidationFailed",
+            errors = ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage })
+        });
+    }
+});
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -17,9 +51,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
