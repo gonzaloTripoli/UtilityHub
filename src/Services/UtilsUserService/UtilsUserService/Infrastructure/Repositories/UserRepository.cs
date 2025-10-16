@@ -16,10 +16,14 @@ namespace UtilsUserService.Infrastructure.Repositories
         public Task<User?> GetByIdAsync(Guid id, CancellationToken ct) =>            
        _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
 
-        public async Task AddAsync(User user, CancellationToken ct)
-        {
-            await _db.Users.AddAsync(user, ct);
-            await _db.SaveChangesAsync(ct);
-        }
+
+        public Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct) =>
+            _db.Users.AsNoTracking().AnyAsync(u => u.Id == id, ct);
+
+        public Task AddAsync(User user, CancellationToken ct) =>
+            _db.Users.AddAsync(user, ct).AsTask();
+
+        public Task SaveChangesAsync(CancellationToken ct) =>
+            _db.SaveChangesAsync(ct);
     }
 }

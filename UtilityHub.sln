@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilityHub.Contracts", "src
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{8F834DAA-56B8-45E6-889C-DD78DFC537DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilityHub.Bootstrap", "src\Packages\UtilityHub.Bootstrap\UtilityHub.Bootstrap.csproj", "{24820E21-F5C3-42CE-BA8C-3A1D2BAF130C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{9149CC72-73C7-4077-BCFF-B427565AAAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9149CC72-73C7-4077-BCFF-B427565AAAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9149CC72-73C7-4077-BCFF-B427565AAAEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24820E21-F5C3-42CE-BA8C-3A1D2BAF130C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24820E21-F5C3-42CE-BA8C-3A1D2BAF130C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24820E21-F5C3-42CE-BA8C-3A1D2BAF130C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24820E21-F5C3-42CE-BA8C-3A1D2BAF130C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,5 +59,6 @@ Global
 		{673C87A5-6E65-40CC-9CD5-2025698062B5} = {EC9D4200-889F-49EA-B404-8218F529E1EB}
 		{9149CC72-73C7-4077-BCFF-B427565AAAEB} = {8F834DAA-56B8-45E6-889C-DD78DFC537DA}
 		{8F834DAA-56B8-45E6-889C-DD78DFC537DA} = {D77CD762-E66E-4BCA-A9E4-83EC708C74F1}
+		{24820E21-F5C3-42CE-BA8C-3A1D2BAF130C} = {8F834DAA-56B8-45E6-889C-DD78DFC537DA}
 	EndGlobalSection
 EndGlobal

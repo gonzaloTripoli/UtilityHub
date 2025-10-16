@@ -1,52 +1,98 @@
 version: "3.9"
 
 services:
-  api-gateway:
-    build:
-      context: ./src/ApiGateway/UtilsGateway
-      dockerfile: UtilsGateway/Dockerfile
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: utilityhub-rabbitmq
+    ports: ["5672:5672", "15672:15672"]
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-    ports:
-      - "8080:8080"
-    depends_on:
-      - utilsuserservice
-      - utilsauthservice
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-  utilsuserservice:
-    build:
-      context: ./src/Services/UtilsUserService
-      dockerfile: UtilsUserService/Dockerfile
+  auth-db:
+    image: postgres:16-alpine
+    container_name: utilityhub-auth-db
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__UsersDb: Host=users-db;Port=5432;Database=users;Username=postgres;Password=drowssap
-    ports:
-      - "5001:8080"
-    depends_on:
-      - users-db
-
-  utilsauthservice:
-    build:
-      context: ./src/Services/UtilsAuthService
-      dockerfile: UtilsAuthService/Dockerfile
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-    ports:
-      - "5002:8080"
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: drowssap
+    ports: ["5433:5432"]
+    volumes: [auth_db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   users-db:
     image: postgres:16-alpine
+    container_name: utilityhub-users-db
     environment:
       POSTGRES_DB: users
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: drowssap
-    ports:
-      - "5432:5432"
-    volumes:
-      - users_db_data:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+    volumes: [users_db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d users"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  utilsauthservice:
+    build:
+      context: .
+      dockerfile: src/Services/UtilsAuthService/UtilsAuthService/Dockerfile
+    container_name: utilityhub-auth
+    environment:
+      AutoMigrate: "true"
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__AuthDb: Host=auth-db;Port=5432;Database=auth;Username=postgres;Password=drowssap
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__User: guest
+      RabbitMQ__Pass: guest
+    ports: ["5002:8080"]
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      auth-db:  { condition: service_healthy }
+
+  utilsuserservice:
+    build:
+      context: .
+      dockerfile: src/Services/UtilsUserService/UtilsUserService/Dockerfile
+    container_name: utilityhub-users
+    environment:
+      AutoMigrate: "true"
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__UsersDb: Host=users-db;Port=5432;Database=users;Username=postgres;Password=drowssap
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__User: guest
+      RabbitMQ__Pass: guest
+    ports: ["5001:8080"]
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      users-db: { condition: service_healthy }
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/UtilsGateway/UtilsGateway/Dockerfile
+    container_name: utilityhub-gateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports: ["8080:8080"]
+    depends_on:
+      utilsauthservice: { condition: service_started }
+      utilsuserservice: { condition: service_started }
 
 volumes:
   users_db_data:
+  auth_db_data:

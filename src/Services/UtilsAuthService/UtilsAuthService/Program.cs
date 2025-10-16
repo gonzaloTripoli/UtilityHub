@@ -2,6 +2,7 @@ using FluentValidation;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using UtilityHub.Bootstrap;
 using UtilsAuthService.Application.Commands.RegisterUser;
 using UtilsAuthService.Application.Common;
 using UtilsAuthService.Domain.Interfaces;
@@ -19,9 +20,9 @@ b.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommand>();
 b.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>)); // si lo tenés en Application.Common
 
 // EF Core
-var cs = b.Configuration.GetConnectionString("AuthDb")
-         ?? "Host=localhost;Port=5433;Database=auth;Username=postgres;Password=postgres";
-b.Services.AddDbContext<AuthDbContext>(o => o.UseNpgsql(cs));
+var authCs = b.Configuration.GetConnectionString("AuthDb")
+    ?? throw new InvalidOperationException("Missing connection string 'AuthDb'");
+b.Services.AddDbContext<AuthDbContext>(o => o.UseNpgsql(authCs));
 
 // Repo
 b.Services.AddScoped<IAuthUsersRepository, AuthUsersRepository>();
@@ -29,18 +30,34 @@ b.Services.AddScoped<IAuthUsersRepository, AuthUsersRepository>();
 // MassTransit
 b.Services.AddMassTransit(x =>
 {
+    // x.AddConsumer<...>(); // en Users si registrás consumers
+
     x.UsingRabbitMq((ctx, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        var host = b.Configuration["RabbitMQ:Host"] ?? "rabbitmq";
+        var user = b.Configuration["RabbitMQ:User"] ?? "guest";
+        var pass = b.Configuration["RabbitMQ:Pass"] ?? "guest";
+
+        cfg.Host(host, "/", h =>
         {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username(user);
+            h.Password(pass);
         });
+
         cfg.ConfigureEndpoints(ctx);
     });
 });
 
 var app = b.Build();
+
+if (app.Configuration.GetValue("AutoMigrate", true))
+{
+    await app.Services.ApplyMigrationsAsync<UtilsAuthService.Infrastructure.Persistance.AuthDbContext>(
+        app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Migrations"));
+}
+
+app.UseUtilityHubErrorHandler();
+
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 app.MapControllers();
 app.Run();

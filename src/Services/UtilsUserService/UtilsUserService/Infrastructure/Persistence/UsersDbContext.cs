@@ -16,8 +16,6 @@ namespace UtilsUserService.Infrastructure.Persistence
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Email).IsRequired().HasMaxLength(320);
                 e.HasIndex(x => x.Email).IsUnique();
-                e.Property(x => x.PasswordHash).IsRequired();
-                e.Property(x => x.Role).HasMaxLength(32).HasDefaultValue("user");
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
             });
         }

@@ -1,30 +1,26 @@
-# Consulte https://aka.ms/customizecontainer para aprender a personalizar su contenedor de depuración y cómo Visual Studio usa este Dockerfile para compilar sus imágenes para una depuración más rápida.
-
-# Esta fase se usa cuando se ejecuta desde VS en modo rápido (valor predeterminado para la configuración de depuración)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-
-# Esta fase se usa para compilar el proyecto de servicio
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["UtilsAuthService/UtilsAuthService.csproj", "UtilsAuthService/"]
-RUN dotnet restore "./UtilsAuthService/UtilsAuthService.csproj"
-COPY . .
-WORKDIR "/src/UtilsAuthService"
-RUN dotnet build "./UtilsAuthService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Esta fase se usa para publicar el proyecto de servicio que se copiará en la fase final.
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./UtilsAuthService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# 1) Copiar csproj respetando la ESTRUCTURA (./src/...)
+COPY src/Services/UtilsAuthService/UtilsAuthService/UtilsAuthService.csproj ./src/Services/UtilsAuthService/UtilsAuthService/
+COPY src/Packages/UtilityHub.Contracts/UtilityHub.Contracts.csproj      ./src/Packages/UtilityHub.Contracts/
+COPY src/Packages/UtilityHub.Bootstrap/UtilityHub.Bootstrap.csproj      ./src/Packages/UtilityHub.Bootstrap/
 
-# Esta fase se usa en producción o cuando se ejecuta desde VS en modo normal (valor predeterminado cuando no se usa la configuración de depuración)
-FROM base AS final
+# Restore usando la misma ruta que en el repo
+RUN dotnet restore ./src/Services/UtilsAuthService/UtilsAuthService/UtilsAuthService.csproj
+
+# 2) Copiar código fuente manteniendo la estructura ./src/...
+COPY src/Services/UtilsAuthService/UtilsAuthService/                    ./src/Services/UtilsAuthService/UtilsAuthService/
+COPY src/Packages/                                                      ./src/Packages/
+
+# 3) Publish usando la ruta real
+RUN dotnet publish ./src/Services/UtilsAuthService/UtilsAuthService/UtilsAuthService.csproj -c $BUILD_CONFIGURATION -o /app
+
+# ---- runtime ----
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+ENV ASPNETCORE_URLS=http://+:8080
+COPY --from=build /app .
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "UtilsAuthService.dll"]

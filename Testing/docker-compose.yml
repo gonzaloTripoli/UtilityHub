@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: utilityhub-rabbitmq
+    ports:
+      - "5672:5672"      # AMQP
+      - "15672:15672"    # UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: utilityhub-auth-db
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: drowssap
+    ports:
+      - "25433:5432"     # host:25433 -> container:5432
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  users-db:
+    image: postgres:16-alpine
+    container_name: utilityhub-users-db
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: drowssap
+    ports:
+      - "25432:5432"     # host:25432 -> container:5432
+    volumes:
+      - users_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d users"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  users_db_data:
+  auth_db_data:
