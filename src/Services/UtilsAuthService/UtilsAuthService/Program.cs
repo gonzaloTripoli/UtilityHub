@@ -14,23 +14,18 @@ b.Services.AddControllers();
 b.Services.AddEndpointsApiExplorer();
 b.Services.AddSwaggerGen();
 
-// MediatR + Validators + ValidationBehavior (si lo usás)
 b.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<RegisterUserCommand>());
 b.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommand>();
 b.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>)); // si lo tenés en Application.Common
 
-// EF Core
 var authCs = b.Configuration.GetConnectionString("AuthDb")
     ?? throw new InvalidOperationException("Missing connection string 'AuthDb'");
 b.Services.AddDbContext<AuthDbContext>(o => o.UseNpgsql(authCs));
 
-// Repo
 b.Services.AddScoped<IAuthUsersRepository, AuthUsersRepository>();
 
-// MassTransit
 b.Services.AddMassTransit(x =>
 {
-    // x.AddConsumer<...>(); // en Users si registrás consumers
 
     x.UsingRabbitMq((ctx, cfg) =>
     {

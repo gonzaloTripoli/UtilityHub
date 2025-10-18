@@ -13,7 +13,7 @@ namespace UtilsUserService.Infrastructure.Repositories
         public Task<User?> GetByEmailAsync(string email, CancellationToken ct) =>
             _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, ct);
 
-        public Task<User?> GetByIdAsync(Guid id, CancellationToken ct) =>            
+        public Task<User?> GetByIdAsync(Guid id, CancellationToken ct) =>
        _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
 
 

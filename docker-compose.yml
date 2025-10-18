@@ -21,7 +21,7 @@ services:
       POSTGRES_DB: auth
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: drowssap
-    ports: ["5433:5432"]
+    ports: ["25433:5432"]    # Host:25433 -> Container:5432
     volumes: [auth_db_data:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d auth"]
@@ -36,7 +36,7 @@ services:
       POSTGRES_DB: users
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: drowssap
-    ports: ["5432:5432"]
+    ports: ["25432:5432"]    # Host:25432 -> Container:5432
     volumes: [users_db_data:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d users"]
@@ -53,6 +53,7 @@ services:
       AutoMigrate: "true"
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      # 👇 dentro de la red docker SIEMPRE 5432
       ConnectionStrings__AuthDb: Host=auth-db;Port=5432;Database=auth;Username=postgres;Password=drowssap
       RabbitMQ__Host: rabbitmq
       RabbitMQ__User: guest
@@ -71,6 +72,7 @@ services:
       AutoMigrate: "true"
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      # 👇 dentro de la red docker SIEMPRE 5432
       ConnectionStrings__UsersDb: Host=users-db;Port=5432;Database=users;Username=postgres;Password=drowssap
       RabbitMQ__Host: rabbitmq
       RabbitMQ__User: guest

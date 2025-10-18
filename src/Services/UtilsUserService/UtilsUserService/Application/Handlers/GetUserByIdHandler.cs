@@ -13,6 +13,6 @@ public sealed class GetUserByIdHandler : IRequestHandler<GetUserByIdQuery, UserD
     public async Task<UserDto?> Handle(GetUserByIdQuery request, CancellationToken ct)
     {
         var user = await _repo.GetByIdAsync(request.Id, ct);
-        return user is null ? null : new    UserDto(user.Id, user.Email,  user.CreatedAt);
+        return user is null ? null : new UserDto(user.Id, user.Email, user.CreatedAt);
     }
 }

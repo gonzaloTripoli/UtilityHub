@@ -1,7 +1,6 @@
 ﻿using MassTransit;
 using MediatR;
 using UtilityHub.Contracts.Identity;
-using UtilsAuthService.Application.Commands;
 using UtilsAuthService.Application.Commands.RegisterUser;
 using UtilsAuthService.Domain.Entities;
 using UtilsAuthService.Domain.Interfaces;
