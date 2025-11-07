@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using UtilsAuthService.Application.Commands.LoginUser;
 using UtilsAuthService.Domain.Entities;
 using UtilsAuthService.Domain.Interfaces;
 using UtilsAuthService.Infrastructure.Persistance;
@@ -17,6 +18,11 @@ namespace UtilsAuthService.Infrastructure.Repositories
         {
             await _db.Users.AddAsync(user, ct);
             await _db.SaveChangesAsync(ct);
+        }
+
+        public async Task<bool> LoginAsync(LoginUserCommand user, CancellationToken ct) 
+        {
+        
         }
     }
 }

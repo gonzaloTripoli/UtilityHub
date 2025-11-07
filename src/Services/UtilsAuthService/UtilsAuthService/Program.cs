@@ -1,7 +1,10 @@
+using System.Text;
 using FluentValidation;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using UtilityHub.Bootstrap;
 using UtilsAuthService.Application.Commands.RegisterUser;
 using UtilsAuthService.Application.Common;
@@ -18,12 +21,37 @@ b.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Register
 b.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommand>();
 b.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>)); // si lo tenés en Application.Common
 
+
+b.Services.AddAuthentication(JwtBearerDefaults
+    .AuthenticationScheme).
+    AddJwtBearer(options => {
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(b.Configuration["Jwt:Key"]!)),
+            ValidateIssuer = true,
+            ValidIssuer = b.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = b.Configuration["Jwt:Audience"],
+            ValidateLifetime = true,
+        };
+    
+    
+    
+    
+    });
+
+b.Services.AddAuthorization();
+
+
+
 var authCs = b.Configuration.GetConnectionString("AuthDb")
     ?? throw new InvalidOperationException("Missing connection string 'AuthDb'");
 b.Services.AddDbContext<AuthDbContext>(o => o.UseNpgsql(authCs));
 
 b.Services.AddScoped<IAuthUsersRepository, AuthUsersRepository>();
-
 b.Services.AddMassTransit(x =>
 {
 
@@ -44,6 +72,8 @@ b.Services.AddMassTransit(x =>
 });
 
 var app = b.Build();
+app.UseAuthentication();
+app.UseAuthorization(); 
 
 if (app.Configuration.GetValue("AutoMigrate", true))
 {
