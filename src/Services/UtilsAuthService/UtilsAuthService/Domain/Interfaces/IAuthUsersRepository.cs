@@ -6,5 +6,6 @@ namespace UtilsAuthService.Domain.Interfaces
     {
         Task<bool> EmailExistsAsync(string email, CancellationToken ct);
         Task AddAsync(AuthUser user, CancellationToken ct);
+        Task<AuthUser?> GetByEmailAsync(string email, CancellationToken ct);
     }
 }
