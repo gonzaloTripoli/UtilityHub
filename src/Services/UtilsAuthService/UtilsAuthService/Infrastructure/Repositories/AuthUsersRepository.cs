@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using UtilsAuthService.Application.Commands.LoginUser;
 using UtilsAuthService.Domain.Entities;
 using UtilsAuthService.Domain.Interfaces;
 using UtilsAuthService.Infrastructure.Persistance;
@@ -20,9 +19,7 @@ namespace UtilsAuthService.Infrastructure.Repositories
             await _db.SaveChangesAsync(ct);
         }
 
-        public async Task<bool> LoginAsync(LoginUserCommand user, CancellationToken ct) 
-        {
-        
-        }
+        public Task<AuthUser?> GetByEmailAsync(string email, CancellationToken ct) =>
+            _db.Users.SingleOrDefaultAsync(u => u.Email == email, ct);
     }
 }

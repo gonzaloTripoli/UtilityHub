@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using UtilsAuthService.Application.Commands.LoginUser;
 using UtilsAuthService.Application.Commands.RegisterUser;
 
 namespace UtilsAuthService.API.Controllers
@@ -27,7 +28,7 @@ namespace UtilsAuthService.API.Controllers
         {
             var user = await _sender.Send(new LoginUserCommand(body.Email, body.Password), ct);
 
-            return (nameof)
+            return Ok(user);
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using FluentValidation;
-using UtilsAuthService.Application.Commands.RegisterUser;
-
 namespace UtilsAuthService.Application.Commands.LoginUser
 {
-    public class LoginUserValidator: AbstractValidator<LoginUserCommand>
+    public class LoginUserValidator : AbstractValidator<LoginUserCommand>
     {
 
         public LoginUserValidator() 
