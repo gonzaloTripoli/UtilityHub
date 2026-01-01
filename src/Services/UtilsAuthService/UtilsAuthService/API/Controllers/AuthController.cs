@@ -16,6 +16,8 @@ namespace UtilsAuthService.API.Controllers
 
         public record LoginRequest(string Email, string Password);
 
+        public record DeleteRequest(Guid id);
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest body, CancellationToken ct)
         {
@@ -30,5 +32,13 @@ namespace UtilsAuthService.API.Controllers
 
             return Ok(user);
         }
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete([FromBody] DeleteRequest, CancellationToken ct) 
+        {
+
+
+            var userDeleted = await _sender.Send(new DeleteUserCommand());
+        }
+
     }
 }

@@ -1,0 +1,40 @@
+# =========================
+# ARCHIVOS DE CONFIGURACIÓN / SECRETOS
+# =========================
+.env
+*.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# JSON sensibles
+appsettings.Development.json
+appsettings.Local.json
+*secrets.json
+
+# Tokens / Credenciales
+*.key
+*.pem
+*.p12
+*.cer
+*.crt
+
+# =========================
+# DOTNET
+# =========================
+bin/
+obj/
+out/
+*.user
+*.suo
+
+# Rider / VS / VSCode
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs
+*.log
+logs/
+
